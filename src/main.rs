@@ -1,0 +1,42 @@
+mod create_mdbook;
+mod create_mdfiles;
+
+//function that write_mdFile
+use create_mdfiles::file_read;
+
+//function that related with mdBook
+use create_mdbook::*;
+
+//dialog
+use native_dialog::FileDialog;
+use native_dialog::MessageDialog;
+use native_dialog::MessageType;
+
+fn message_alert(str: &str) {
+    // MessageDialog::new()
+    //     .set_type(MessageType::Info)
+    //     .set_title(&str)
+    //     .set_text(&str)
+    //     .show_alert()
+    //     .unwrap();
+    println!("{}", str);
+}
+
+fn main() {
+
+    create_mdbook();
+    let file_name = FileDialog::new()
+        .set_location("~/")
+        // .add_filter("md", &["md"])
+        .show_open_single_file();
+
+    let path = file_name.expect("can not fine").expect("error");
+
+    file_read(path.to_str().unwrap().to_string());
+
+    // file_read("../../spMessageSpecification/message_specification/message_specification.md".to_string());
+    build_mdbook();
+
+    message_alert("done");
+
+}

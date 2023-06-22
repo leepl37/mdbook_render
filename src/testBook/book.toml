@@ -1,0 +1,11 @@
+[book]
+authors = []
+language = "en"
+multilingual = false
+src = "src"
+title = "Test Book"
+
+
+[preprocessor.plantuml]
+command = "mdbook-plantuml"
+
