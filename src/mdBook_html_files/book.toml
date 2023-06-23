@@ -1,8 +1,0 @@
-[book]
-authors = []
-language = "en"
-multilingual = false
-src = "src"
-title = "메시지 규격"
-[preprocessor.plantuml]
-command = "mdbook-plantuml.exe"

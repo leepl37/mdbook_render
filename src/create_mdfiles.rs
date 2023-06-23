@@ -32,7 +32,7 @@ fn summary_name(name: &str) -> String {
 }
 
 fn summary_write_append(contents: &str) {
-    let _ = fs::create_dir_all("./mdBook_html_files/src");
+    // let _ = fs::create_dir_all("./mdBook_html_files/src");
 
     let mut summary = OpenOptions::new()
         .create(true)
@@ -149,6 +149,7 @@ fn append_content(line: String, path: String) {
 }
 
 pub fn file_read(path: String) {
+    message_alert("file read");
     let mut does_first_line_marker_not_contain = false;
     let mut contents = "".to_string();
 
