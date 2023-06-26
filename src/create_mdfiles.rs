@@ -32,7 +32,7 @@ fn summary_name(name: &str) -> String {
 }
 
 fn summary_write_append(contents: &str) {
-    // let _ = fs::create_dir_all("./mdBook_html_files/src");
+    let _ = fs::create_dir_all("./mdBook_html_files/src");
 
     let mut summary = OpenOptions::new()
         .create(true)
@@ -45,6 +45,7 @@ fn summary_write_append(contents: &str) {
             summary_file.flush().expect("Failed to flush the file");
         }
         Err(err) => {
+            println!("summary file does not exist");
             message_alert(&err.to_string());
         }
     }
@@ -173,6 +174,7 @@ pub fn file_read(path: String) {
             }
         }
     } else {
+
     }
 }
 
