@@ -1,4 +1,5 @@
 //mdbook
+use crate::message_alert;
 use mdbook::config::Config;
 use mdbook::MDBook;
 use std::{
@@ -6,8 +7,6 @@ use std::{
     io::Result,
     io::Write,
 };
-
-use crate::message_alert;
 
 pub fn create_mdbook() {
     let _ = fs::create_dir("./mdBook_html_files/");
@@ -29,7 +28,7 @@ pub fn create_mdbook() {
 pub fn build_mdbook() {
     // write book.toml "preprocessor.plantuml"
 
-    let _ = add_book_toml();
+    // let _ = add_book_toml();
 
     let md = MDBook::load("./mdBook_html_files/");
 
@@ -46,6 +45,26 @@ pub fn build_mdbook() {
             message_alert(&err.to_string());
         }
     }
+
+    // let answer = Command::new("mdbook")
+    //     .arg("build")
+    //     .current_dir("./mdBook_html_files/")
+    //     .output();
+    //
+    // match answer {
+    //     Ok(status) => {
+    //         if status.status.success() {
+    //             message_alert("build success from command");
+    //         } else {
+    //             println!("build failed {:?}", status);
+    //             message_alert("build failed some how");
+    //         }
+    //     }
+    //     Err(err) => {
+    //         println!("status error");
+    //         message_alert(&err.to_string());
+    //     }
+    // }
 }
 
 pub fn add_book_toml() -> Result<()> {
@@ -58,9 +77,9 @@ pub fn add_book_toml() -> Result<()> {
             writeln!(toml, "\n\n")?;
             writeln!(toml, "[preprocessor.plantuml]")?;
             // writeln!(toml, "command = \"./mdbook-plantuml\"")?;
-            // linux 
+            // linux
             // writeln!(toml, "command = \"./mdBook_html_files/mdbook-plantuml -l\"")?;
-            writeln!(toml, "command = \".././mdbook-plantuml-test -l\"")?;
+            writeln!(toml, "command = \".././plantuml_git\"")?;
             // writeln!(toml, "command = \"./mdBook_html_files/mdbook-plantuml\"")?;
             // window
             // writeln!(toml, "command = \"./mdBook_html_files/mdbook-plantuml.exe\"")?;

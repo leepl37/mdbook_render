@@ -1,7 +1,10 @@
 use std::{
     fs::{self, File, OpenOptions},
     io::{BufRead, BufReader, Write},
+    process::Command,
 };
+
+use rand::Rng;
 
 use crate::message_alert;
 
@@ -51,14 +54,15 @@ fn summary_write_append(contents: &str) {
     }
 }
 
-fn file_write(content: &String) {
+fn file_write(content: &String, img_file_names: Option<Vec<String>>) {
     let subject = content.lines().next().to_owned().unwrap();
     summary_write_append(&summary_name(subject));
 
     let subject = md_file_name(subject);
 
     let create_file_path_name = format!("./mdBook_html_files/src/{}.md", subject);
-    let mut file = match File::create(create_file_path_name) {
+
+    let mut file = match File::create(create_file_path_name.clone()) {
         Ok(file) => file,
         Err(err) => {
             message_alert(&err.to_string());
@@ -70,6 +74,7 @@ fn file_write(content: &String) {
         eprintln!("Failed to write to the file: {}", err);
         message_alert(&err.to_string());
     } else {
+        create_uml_image(create_file_path_name, img_file_names);
         // println!("Successfully wrote to the file.");
     }
 }
@@ -88,8 +93,8 @@ fn append_content(line: String, path: String) {
     let last_index = get_last_index(path.clone());
     // let file = File::open(path).unwrap();
 
+    let mut img_files: Vec<String> = vec![];
     // let mut file = File::open(path);
-
     match File::open(path) {
         Ok(file) => {
             let buf = BufReader::new(file);
@@ -98,7 +103,7 @@ fn append_content(line: String, path: String) {
             let mut contents = "".to_string();
 
             let first_marker_cnt = get_line_marker_cnt(&line);
-
+            let mut uml_cnt = 0;
             let mut the_point_of_add_line = 0;
             let mut buf_line_index = 0;
             for (i, n) in buf.lines().enumerate() {
@@ -117,20 +122,43 @@ fn append_content(line: String, path: String) {
                         && buf_line.starts_with('#')
                         && get_line_marker_cnt(&buf_line) <= first_marker_cnt
                     {
-                        file_write(&contents);
+                        if img_files.is_empty() {
+                            file_write(&contents, None);
+                        } else {
+                            file_write(&contents, Some(img_files));
+                        }
                         break;
                     }
 
-                    // if buf_line.contains("plantuml" .. 뒷자리 다 자르기. uml 에러남
-                    match buf_line.contains("@startuml") {
-                        true => {
-                            contents.push_str("@startuml");
+                    if buf_line.contains("```plantuml") {
+                        println!("contains plantuml");
+                        let image_name = format!("{}.svg", generate_random_hash());
+                        let mut file_name =
+                            md_file_name(contents.lines().next().to_owned().unwrap());
+
+                        if uml_cnt > 0 {
+                            file_name = format!("{}_00{}.svg", file_name, uml_cnt);
+                        } else {
+                            file_name = format!("{}.svg", file_name);
                         }
-                        false => {
-                            contents.push_str(&buf_line);
+                        img_files.push(image_name.clone());
+                        contents
+                            .push_str(&format!("<img src=./{}>", &file_name));
+                        contents.push('\n');
+                        uml_cnt += 1;
+                    } else {
+                        match buf_line.contains("@startuml") {
+                            true => {
+                                contents.push_str("@startuml");
+
+                                contents.push('\n');
+                            }
+                            false => {
+                                contents.push_str(&buf_line);
+                                contents.push('\n');
+                            }
                         }
                     }
-                    contents.push('\n');
                 }
             }
 
@@ -140,7 +168,7 @@ fn append_content(line: String, path: String) {
             );
 
             if buf_line_index == last_index {
-                file_write(&contents);
+                file_write(&contents, None);
             }
         }
         Err(err) => {
@@ -174,7 +202,6 @@ pub fn file_read(path: String) {
             }
         }
     } else {
-
     }
 }
 
@@ -182,4 +209,47 @@ fn get_last_index(path: String) -> usize {
     let file = File::open(path).unwrap();
 
     BufReader::new(file).lines().count() - 1
+}
+
+fn generate_random_hash() -> String {
+    let mut rng = rand::thread_rng();
+    let random_bytes: Vec<u8> = (0..8).map(|_| rng.gen()).collect();
+    let hash = md5::compute(random_bytes);
+
+    format!("{:x}", hash)
+}
+
+fn create_uml_image(filename: String, img_file_names: Option<Vec<String>>) {
+    println!("img_file_names : {:?}", &img_file_names);
+    if let Some(names) = img_file_names {
+        let mut command = Command::new("java");
+
+        command.arg("-jar")
+            .arg("./plantuml.jar")
+            .arg("-tsvg")
+            .arg("-nometadata")
+            .arg("-charset")
+            .arg("UTF-8");
+        println!("file name log : {}", filename);
+
+        // for name in names {
+        //     command.arg("-o").arg(name);
+        // }
+        //
+        command.arg(filename);
+
+        message_alert(&format!("command : {:?}", command));
+
+        match command.status() {
+            Ok(done) => {
+                let mut msg = done.to_string();
+                msg.push_str(" : img created from jar file");
+                message_alert(&msg);
+            }
+            Err(e) => {
+                let msg = e.to_string();
+                message_alert(&msg);
+            }
+        }
+    }
 }
