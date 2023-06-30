@@ -132,7 +132,6 @@ fn append_content(line: String, path: String) {
 
                     if buf_line.contains("```plantuml") {
                         println!("contains plantuml");
-                        let image_name = format!("{}.svg", generate_random_hash());
                         let mut file_name =
                             md_file_name(contents.lines().next().to_owned().unwrap());
 
@@ -141,7 +140,7 @@ fn append_content(line: String, path: String) {
                         } else {
                             file_name = format!("{}.svg", file_name);
                         }
-                        img_files.push(image_name.clone());
+                        img_files.push(file_name.clone());
                         contents
                             .push_str(&format!("<img src=./{}>", &file_name));
                         contents.push('\n');
@@ -162,10 +161,6 @@ fn append_content(line: String, path: String) {
                 }
             }
 
-            println!(
-                "buf_line_index : {}, last_index :{}",
-                buf_line_index, last_index
-            );
 
             if buf_line_index == last_index {
                 file_write(&contents, None);
@@ -232,10 +227,6 @@ fn create_uml_image(filename: String, img_file_names: Option<Vec<String>>) {
             .arg("UTF-8");
         println!("file name log : {}", filename);
 
-        // for name in names {
-        //     command.arg("-o").arg(name);
-        // }
-        //
         command.arg(filename);
 
         message_alert(&format!("command : {:?}", command));
@@ -252,4 +243,15 @@ fn create_uml_image(filename: String, img_file_names: Option<Vec<String>>) {
             }
         }
     }
+}
+
+fn append_uml(content : String, file_name : mut String) {
+
+    file_name = format!("./{}", file_name);
+
+    let mut uml _append_file = OpenOptions::new()
+    .create(true)
+    .append(true)
+    .open(path: "./")
+
 }
