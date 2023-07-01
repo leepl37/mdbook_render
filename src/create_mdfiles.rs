@@ -4,9 +4,13 @@ use std::{
     process::Command,
 };
 
+// use status::cc
+// use crate::status::{StatusOfAppending::{Mdtext, Uml}};
+use crate::{
+    message_alert,
+    status::md_status_mod::StatusOfAppending::{Mdtext, Uml},
+};
 use rand::Rng;
-
-use crate::message_alert;
 
 fn md_file_name(name: &str) -> String {
     let mut name = name.replace('#', "");
@@ -54,7 +58,7 @@ fn summary_write_append(contents: &str) {
     }
 }
 
-fn file_write(content: &String, img_file_names: Option<Vec<String>>) {
+fn file_write(content: &String) {
     let subject = content.lines().next().to_owned().unwrap();
     summary_write_append(&summary_name(subject));
 
@@ -74,8 +78,7 @@ fn file_write(content: &String, img_file_names: Option<Vec<String>>) {
         eprintln!("Failed to write to the file: {}", err);
         message_alert(&err.to_string());
     } else {
-        create_uml_image(create_file_path_name, img_file_names);
-        // println!("Successfully wrote to the file.");
+        println!("Successfully wrote to the file.");
     }
 }
 
@@ -90,11 +93,9 @@ fn get_line_marker_cnt(line: &str) -> u8 {
 }
 
 fn append_content(line: String, path: String) {
-    let last_index = get_last_index(path.clone());
-    // let file = File::open(path).unwrap();
-
+    let last_index = get_the_last_line_of_index(path.clone());
+    message_alert("append content start");
     let mut img_files: Vec<String> = vec![];
-    // let mut file = File::open(path);
     match File::open(path) {
         Ok(file) => {
             let buf = BufReader::new(file);
@@ -103,9 +104,11 @@ fn append_content(line: String, path: String) {
             let mut contents = "".to_string();
 
             let first_marker_cnt = get_line_marker_cnt(&line);
-            let mut uml_cnt = 0;
             let mut the_point_of_add_line = 0;
             let mut buf_line_index = 0;
+
+            let mut uml_hash_name = String::new();
+            let mut status_of_md = Mdtext;
             for (i, n) in buf.lines().enumerate() {
                 let buf_line = n.unwrap();
 
@@ -122,48 +125,36 @@ fn append_content(line: String, path: String) {
                         && buf_line.starts_with('#')
                         && get_line_marker_cnt(&buf_line) <= first_marker_cnt
                     {
-                        if img_files.is_empty() {
-                            file_write(&contents, None);
-                        } else {
-                            file_write(&contents, Some(img_files));
-                        }
+                        file_write(&contents);
                         break;
                     }
 
                     if buf_line.contains("```plantuml") {
-                        println!("contains plantuml");
-                        let mut file_name =
-                            md_file_name(contents.lines().next().to_owned().unwrap());
-
-                        if uml_cnt > 0 {
-                            file_name = format!("{}_00{}.svg", file_name, uml_cnt);
-                        } else {
-                            file_name = format!("{}.svg", file_name);
-                        }
-                        img_files.push(file_name.clone());
-                        contents
-                            .push_str(&format!("<img src=./{}>", &file_name));
+                        uml_hash_name = generate_random_hash();
+                        contents.push_str(&format!("<img src=./{}.svg>", uml_hash_name.clone()));
                         contents.push('\n');
-                        uml_cnt += 1;
-                    } else {
-                        match buf_line.contains("@startuml") {
-                            true => {
-                                contents.push_str("@startuml");
+                        contents.push('\n');
+                        status_of_md = Uml;
+                    }
 
-                                contents.push('\n');
+                    match status_of_md {
+                        Uml => {
+                            if buf_line == "```" {
+                                status_of_md = Mdtext;
                             }
-                            false => {
-                                contents.push_str(&buf_line);
-                                contents.push('\n');
-                            }
+                            message_alert("plantuml message occur");
+                            append_uml(buf_line.to_string(), uml_hash_name.clone());
+                        }
+                        Mdtext => {
+                            contents.push_str(&buf_line);
+                            contents.push('\n');
                         }
                     }
                 }
             }
 
-
             if buf_line_index == last_index {
-                file_write(&contents, None);
+                file_write(&contents);
             }
         }
         Err(err) => {
@@ -173,7 +164,6 @@ fn append_content(line: String, path: String) {
 }
 
 pub fn file_read(path: String) {
-    message_alert("file read");
     let mut does_first_line_marker_not_contain = false;
     let mut contents = "".to_string();
 
@@ -183,7 +173,6 @@ pub fn file_read(path: String) {
             let line = n.unwrap();
             if line.contains('#') && line.starts_with('#') {
                 if does_first_line_marker_not_contain {
-                    // file_write(&contents);
                     does_first_line_marker_not_contain = false;
                 }
 
@@ -197,10 +186,11 @@ pub fn file_read(path: String) {
             }
         }
     } else {
+        message_alert("file is not exist.");
     }
 }
 
-fn get_last_index(path: String) -> usize {
+fn get_the_last_line_of_index(path: String) -> usize {
     let file = File::open(path).unwrap();
 
     BufReader::new(file).lines().count() - 1
@@ -214,44 +204,61 @@ fn generate_random_hash() -> String {
     format!("{:x}", hash)
 }
 
-fn create_uml_image(filename: String, img_file_names: Option<Vec<String>>) {
-    println!("img_file_names : {:?}", &img_file_names);
-    if let Some(names) = img_file_names {
-        let mut command = Command::new("java");
+fn create_uml_image(filename: String) {
+    let mut command = Command::new("java");
 
-        command.arg("-jar")
-            .arg("./plantuml.jar")
-            .arg("-tsvg")
-            .arg("-nometadata")
-            .arg("-charset")
-            .arg("UTF-8");
-        println!("file name log : {}", filename);
+    command
+        .arg("-jar")
+        .arg("./plantuml.jar")
+        .arg("-tsvg")
+        .arg("-nometadata")
+        .arg("-charset")
+        .arg("UTF-8");
 
-        command.arg(filename);
+    command.arg(filename);
 
-        message_alert(&format!("command : {:?}", command));
+    message_alert(&format!("command : {:?}", command));
 
-        match command.status() {
-            Ok(done) => {
-                let mut msg = done.to_string();
-                msg.push_str(" : img created from jar file");
-                message_alert(&msg);
-            }
-            Err(e) => {
-                let msg = e.to_string();
-                message_alert(&msg);
-            }
+    match command.status() {
+        Ok(done) => {
+            let mut msg = done.to_string();
+            msg.push_str(" : img created from jar file");
+            message_alert(&msg);
+        }
+        Err(e) => {
+            let msg = e.to_string();
+            message_alert(&msg);
         }
     }
 }
 
-fn append_uml(content : String, file_name : mut String) {
+fn append_uml(mut content: String, mut file_name: String) {
+    file_name = format!("./mdBook_html_files/src/{}.txt", file_name);
 
-    file_name = format!("./{}", file_name);
+    if content.starts_with("@startuml") {
+        content = "@startuml".to_string();
+    }
+    let uml_append_tmp_file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(file_name.clone());
 
-    let mut uml _append_file = OpenOptions::new()
-    .create(true)
-    .append(true)
-    .open(path: "./")
+    match uml_append_tmp_file {
+        Ok(mut tmp_file) => {
+            if let Err(err) = writeln!(tmp_file, "{}", content.clone()) {
+                message_alert("file append fail");
+                message_alert(&err.to_string());
+            } else {
+                message_alert(&content);
+            }
+        }
+        Err(e) => {
+            message_alert(&e.to_string());
+        }
+    };
 
+    if content.contains("@enduml") {
+        message_alert(&file_name);
+        create_uml_image(file_name);
+    }
 }
