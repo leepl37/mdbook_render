@@ -12,6 +12,15 @@ use crate::{
 };
 use rand::Rng;
 
+struct A {
+    name: String,
+}
+
+impl A {
+    fn go() {
+        println!("hello");
+    }
+}
 fn md_file_name(name: &str) -> String {
     let mut name = name.replace('#', "");
     name = name.replace(' ', "");
