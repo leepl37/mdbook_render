@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 
 
-mdbook = "0.4.30"
+mdbook = { path = "./lib/mdBook"}
 native-dialog = "0.6.4"
 md5 = "0.7.0"
 rand = "0.8.5"

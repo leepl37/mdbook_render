@@ -12,15 +12,6 @@ use crate::{
 };
 use rand::Rng;
 
-struct A {
-    name: String,
-}
-
-impl A {
-    fn go() {
-        println!("hello");
-    }
-}
 fn md_file_name(name: &str) -> String {
     let mut name = name.replace('#', "");
     name = name.replace(' ', "");
@@ -87,7 +78,6 @@ fn file_write(content: &String) {
         eprintln!("Failed to write to the file: {}", err);
         message_alert(&err.to_string());
     } else {
-        println!("Successfully wrote to the file.");
     }
 }
 
@@ -103,7 +93,7 @@ fn get_line_marker_cnt(line: &str) -> u8 {
 
 fn append_content(line: String, path: String) {
     let last_index = get_the_last_line_of_index(path.clone());
-    message_alert("append content start");
+    // message_alert("append content start");
     let mut img_files: Vec<String> = vec![];
     match File::open(path) {
         Ok(file) => {
@@ -151,7 +141,7 @@ fn append_content(line: String, path: String) {
                             if buf_line == "```" {
                                 status_of_md = Mdtext;
                             }
-                            message_alert("plantuml message occur");
+                            // message_alert("plantuml message occur");
                             append_uml(buf_line.to_string(), uml_hash_name.clone());
                         }
                         Mdtext => {
@@ -173,6 +163,7 @@ fn append_content(line: String, path: String) {
 }
 
 pub fn file_read(path: String) {
+    message_alert("It takes some time depends on the file size....wait for 2 min!!!!!!");
     let mut does_first_line_marker_not_contain = false;
     let mut contents = "".to_string();
 
@@ -226,13 +217,13 @@ fn create_uml_image(filename: String) {
 
     command.arg(filename);
 
-    message_alert(&format!("command : {:?}", command));
+    // message_alert(&format!("command : {:?}", command));
 
     match command.status() {
         Ok(done) => {
             let mut msg = done.to_string();
             msg.push_str(" : img created from jar file");
-            message_alert(&msg);
+            // message_alert(&msg);
         }
         Err(e) => {
             let msg = e.to_string();
@@ -258,7 +249,7 @@ fn append_uml(mut content: String, mut file_name: String) {
                 message_alert("file append fail");
                 message_alert(&err.to_string());
             } else {
-                message_alert(&content);
+                // message_alert(&content);
             }
         }
         Err(e) => {
@@ -267,7 +258,7 @@ fn append_uml(mut content: String, mut file_name: String) {
     };
 
     if content.contains("@enduml") {
-        message_alert(&file_name);
+        // message_alert(&file_name);
         create_uml_image(file_name);
     }
 }
