@@ -27,7 +27,7 @@ fn message_alert(str: &str) {
 }
 
 fn print_message(str: &str) {
-    println!(" {}", str);
+    println!(" ------------{}", str);
 }
 
 fn main() {
