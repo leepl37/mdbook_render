@@ -12,7 +12,7 @@ mdbook = { path = "./lib/mdBook"}
 native-dialog = "0.6.4"
 md5 = "0.7.0"
 rand = "0.8.5"
-
+regex = "1.9.1"
 
 [target.x86_64-pc-windows-gnu]
 linker = "x86_64-w64-mingw32-gcc"

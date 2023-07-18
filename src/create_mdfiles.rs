@@ -7,17 +7,22 @@ use std::{
 // use status::cc
 // use crate::status::{StatusOfAppending::{Mdtext, Uml}};
 use crate::{
-    message_alert,
+    message_alert, print_message,
     status::md_status_mod::StatusOfAppending::{Mdtext, Uml},
 };
 use rand::Rng;
+use regex::Regex;
 
 fn md_file_name(name: &str) -> String {
     let mut name = name.replace('#', "");
     name = name.replace(' ', "");
     name = name.replace(':', "_");
     name = name.replace('[', "");
-    name.replace(']', "").replace('/', "_")
+
+    let re = Regex::new(r"[^0-9.]").unwrap();
+    let name = re.replace_all(&name, "");
+    // name.replace(']', "").replace('/', "_")
+    name.to_string()
 }
 
 fn summary_name(name: &str) -> String {
@@ -109,6 +114,7 @@ fn append_content(line: String, path: String) {
             let mut uml_hash_name = String::new();
             let mut status_of_md = Mdtext;
             for (i, n) in buf.lines().enumerate() {
+                print_message(&line);
                 let buf_line = n.unwrap();
 
                 buf_line_index = i;
@@ -171,6 +177,7 @@ pub fn file_read(path: String) {
         let reader = BufReader::new(file);
         for (i, n) in reader.lines().enumerate() {
             let line = n.unwrap();
+
             if line.contains('#') && line.starts_with('#') {
                 if does_first_line_marker_not_contain {
                     does_first_line_marker_not_contain = false;

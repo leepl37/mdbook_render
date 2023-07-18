@@ -32,7 +32,7 @@ pub fn build_mdbook() {
     match md {
         Ok(md) => match md.build() {
             Ok(_) => {
-                message_alert("static files init sucessfully");
+                // message_alert("static files init sucessfully");
             }
             Err(err) => {
                 message_alert(&err.to_string());

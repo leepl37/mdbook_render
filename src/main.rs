@@ -26,8 +26,12 @@ fn message_alert(str: &str) {
     // println!("{}", str);
 }
 
+fn print_message(str: &str) {
+    println!(" {}", str);
+}
+
 fn main() {
-    message_alert("book start create");
+    // message_alert("book start create");
 
     create_mdbook();
 

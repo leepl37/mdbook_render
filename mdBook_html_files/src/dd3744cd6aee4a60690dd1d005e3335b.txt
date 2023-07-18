@@ -1,0 +1,77 @@
+```plantuml
+@startuml
+'===============================================================================
+' 설정
+'===============================================================================
+
+'=== Header and Footer ===
+'header 모바일 신분증
+'footer
+'  	Page %page% of %lastpage% at %date("yyyy-MM-dd hh:mm:ss")
+'end footer
+
+'=== 제목 ===
+title
+	<size:25>BLE + QR-CPM indirect mode</size>
+end title
+
+'=== 옵션 ===
+' 자동채번: ex) "<b>000." => 앞에 0을 채워 3자리 숫자로 표시
+autonumber "<b>(#)</b>"
+' 페이지 하단 participant box 숨기기
+'hide footbox
+
+'=== Panticipants ===
+participant "신분증앱" as APP <<Mobile>>
+participant "응대장치" as RD <<Device>>
+
+
+'===============================================================================
+' 상수
+'===============================================================================
+
+
+'===============================================================================
+' 내용
+'===============================================================================
+
+== 선처리 ==
+APP -> APP: **M150** 메시지 생성
+note right
+**-- M150**
+{
+  "type":"mip",
+  "version":"1.0.0",
+  "cmd":"150",
+  "trxcode":"20211102162732145432176790",
+  "bleid":"550e8400-e29b-41d4-a716-446655440000",
+  "blepwd":"1234567890"
+}
+end note
+APP -> APP: QR 표출
+APP -->> RD: QR스캔
+
+group BLE 연결 초기화
+    RD -> RD: M150.bleid 로 기기검색
+    APP <<-- RD: BLE 연결
+end
+
+== VP 제출 및 검증 ==
+group BLE 인터페이스
+    APP <- RD: **password** 메시지 전송
+    APP -> APP: 연결 비밀번호(password.blepw) 확인
+    APP -> RD: **ack** 메시지 전송
+    RD -> RD: profile 생성
+    note right: 필요시 image, ci 항목 설정 가능
+    RD -> APP: **profile** 메시지 전송
+    APP -> APP: VP 생성
+    APP -> RD: **vp** 메시지 전송
+    RD -> RD: VP 검증
+    RD -> APP: **finish** 메시지 전송
+end
+
+== 거래 종료 ==
+APP <<-->> RD: BLE 연결 해제
+
+@enduml
+```
