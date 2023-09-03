@@ -31,7 +31,7 @@ fn print_message(str: &str) {
 }
 
 fn main() {
-    // message_alert("book start create");
+    message_alert("book start create");
 
     create_mdbook();
 
@@ -41,8 +41,12 @@ fn main() {
         // .add_filter("md", &["md"])
         .show_open_single_file();
     let path = file_name.expect("can not fine").expect("error");
+
+    message_alert(path.to_str().unwrap());
+
     file_read(path.to_str().unwrap().to_string());
 
+    // message_alert();
     //linux
     // file_read("./message_specification/message_specification.md".to_string());
 
